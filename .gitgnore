@@ -1,0 +1,14 @@
+target/
+*.class
+*.jar
+!**/src/main/**
+.env
+*.env
+.idea/
+.vscode/
+*.iml
+*.DS_Store
+
+# Kubernetes secrets
+k8s/config/*-secret.yaml
+k8s/config/*-secrets.yaml
