@@ -26,10 +26,11 @@
     <!-- Dependency versions -->
     <spring-cloud.version>2023.0.1</spring-cloud.version>
     <picocli.version>4.7.5</picocli.version>
-    <minio.version>8.5.7</minio.version>
+    <minio.version>8.6.0</minio.version>
     <fabric8.version>6.12.0</fabric8.version>
     <py4j.version>0.10.9.7</py4j.version>
     <postgresql.version>42.7.3</postgresql.version>
+    <lombok.version>1.18.34</lombok.version>
     <testcontainers.version>1.19.3</testcontainers.version>
   </properties>
 
@@ -113,6 +114,14 @@
         <groupId>com.google.guava</groupId>
         <artifactId>guava</artifactId>
         <version>33.0.0-jre</version>
+      </dependency>
+
+      <!-- Lombok for Annotation Processing -->
+      <dependency>
+        <groupId>org.projectlombok</groupId>
+        <artifactId>lombok</artifactId>
+        <version>${lombok.version}</version>
+        <scope>provided</scope>
       </dependency>
     </dependencies>
   </dependencyManagement>

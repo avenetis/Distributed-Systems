@@ -12,9 +12,9 @@
     <relativePath>../../pom.xml</relativePath>
   </parent>
 
-  <artifactId>ui-service</artifactId>
-  <name>MapReduce UI Service</name>
-  <description>Command-Line Interface and REST API for MapReduce System</description>
+  <artifactId>manager-service</artifactId>
+  <name>MapReduce Manager Service</name>
+  <description>Coordinates and monitors MapReduce job execution</description>
 
   <dependencies>
     <!-- Spring Boot Web -->
@@ -23,7 +23,13 @@
       <artifactId>spring-boot-starter-web</artifactId>
     </dependency>
 
-    <!-- Spring Boot Security & OAuth2 Resource Server for JWT validation -->
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <optional>true</optional>
+    </dependency>
+
+    <!-- Spring Boot Security & OAuth2 Resource Server -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
@@ -35,19 +41,43 @@
       <artifactId>spring-boot-starter-security</artifactId>
     </dependency>
 
-    <!-- OpenFeign for REST client -->
+    <!-- Spring Data JPA for PostgreSQL -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+    
+    <!-- PostgreSQL Driver -->
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+    </dependency>
+
+    <!-- Spring Data Redis for task state tracking -->
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-redis</artifactId>
+    </dependency>
+
+    <!-- OpenFeign for inter-service communication -->
     <dependency>
       <groupId>org.springframework.cloud</groupId>
       <artifactId>spring-cloud-starter-openfeign</artifactId>
     </dependency>
 
-    <!-- Picocli for CLI implementation -->
+    <!-- Fabric8 Kubernetes Client -->
+    <dependency>
+      <groupId>io.fabric8</groupId>
+      <artifactId>kubernetes-client</artifactId>
+    </dependency>
+
+    <!-- Picocli for CLI commands -->
     <dependency>
       <groupId>info.picocli</groupId>
       <artifactId>picocli-spring-boot-starter</artifactId>
     </dependency>
 
-    <!-- Spring Boot Actuator for health checks -->
+    <!-- Spring Boot Actuator -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-actuator</artifactId>
@@ -59,10 +89,10 @@
       <artifactId>spring-boot-starter-validation</artifactId>
     </dependency>
 
-    <!-- Kubernetes Client for cluster interaction -->
+    <!-- MinIO Client for file operations -->
     <dependency>
-      <groupId>io.fabric8</groupId>
-      <artifactId>kubernetes-client</artifactId>
+      <groupId>io.minio</groupId>
+      <artifactId>minio</artifactId>
     </dependency>
 
     <!-- Jackson for JSON processing -->
@@ -71,7 +101,19 @@
       <artifactId>jackson-databind</artifactId>
     </dependency>
 
-    <!-- Lombok for boilerplate reduction -->
+    <!-- Commons IO -->
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+    </dependency>
+
+    <!-- Guava for utilities -->
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+    </dependency>
+
+    <!-- Lombok -->
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
@@ -85,8 +127,18 @@
       <scope>test</scope>
     </dependency>
     <dependency>
-      <groupId>org.springframework.security</groupId>
-      <artifactId>spring-security-test</artifactId>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>testcontainers</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>postgresql</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.testcontainers</groupId>
+      <artifactId>junit-jupiter</artifactId>
       <scope>test</scope>
     </dependency>
   </dependencies>
@@ -97,7 +149,6 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
         <configuration>
-          <mainClass>com.mapreduce.ui.UiServiceApplication</mainClass>
           <excludes>
             <exclude>
               <groupId>org.projectlombok</groupId>

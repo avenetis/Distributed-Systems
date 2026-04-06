@@ -1,0 +1,79 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: manager-service
+
+    #postgresql configuration
+    datasource:
+      url: jdbc:postgresql://postgres-dds.mapreduce-system.svc.cluster.local:5432/mapreduce
+      username: ${DB_USERNAME:mapreduce_user}
+      password: ${DB_PASSWORD:mapreduce_password}
+      driver-class-name: org.postgresql.Driver
+      hikari:
+        maximum-pool-size: 10
+        minimum-idle: 5
+        connection-timeout: 30000
+
+    jpa:
+      hibernate:
+        ddl-auto: update
+      properties:
+        hibernate:
+          dialect: org.hibernate.dialect.PostgreSQLDialect
+          format_sql: true
+          jdbc:
+            batch_size: 20
+      show-sql: false
+      
+    #redis configuration
+    data:
+      redis:
+        host: redis.mapreduce-system.svc.cluster.local
+        port: 6379
+        password: ${REDIS_PASSWORD}
+        timeout: 5000ms
+        lettuce:
+          pool:
+            max-active: 8
+            max-idle: 8
+            min-idle: 0
+
+minio:
+  endpoint: http://minio.mapreduce-infra.svc.cluster.local:9000
+  access-key: ${MINIO_ACCESS_KEY:minioadmin}
+  secret-key: ${MINIO_SECRET_KEY:minioadmin}
+  bucket:
+    input: mapreduce-input
+    intermediate: mapreduce-intermediate
+    output: mapreduce-output
+    code: mapreduce-code
+
+logging:
+  level:
+    com.mapreduce.manager: DEBUG
+    org.springframework.web: INFO
+    org.hibernate: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+job:
+  default:
+    num-mappers: 4
+    num-reducers: 2
+  task:
+    timeout-seconds: 300
+    max-retries: 3
+  worker:
+    heartbeat-interval-seconds: 10
+    heartbeat-timeout-seconds: 30
