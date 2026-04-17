@@ -1,5 +1,6 @@
 package com.mapreduce.manager.dto;
 
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 
@@ -17,10 +18,15 @@ public class JobRequest {
     private String reducerCodePath;
 
     @Min(value= 1, message= "Number of mappers must be at leat 1")
+    @Max(value= 1000, message= "Number of mappers cannot exceed 1000")
     private Integer numMappers = 4;
 
     @Min(value= 1, message= "Number of reducers must be at leat 1")
+    @Max(value = 500, message= "Number of reducers cannot exceed 500")
     private Integer numReducers = 2;
+
+    private String inputFormat = "json";
+    private String userId;
 
     public String getName() {
         return name;
@@ -76,6 +82,22 @@ public class JobRequest {
 
     public void setNumReducers(Integer numReducers) {
         this.numReducers = numReducers;
+    }
+
+    public String getInputFormat() {
+        return inputFormat;
+    }
+
+    public void setInputFormat(String inputFormat) {
+        this.inputFormat = inputFormat;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
     }
 
 }
