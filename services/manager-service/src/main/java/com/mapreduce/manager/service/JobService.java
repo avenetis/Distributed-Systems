@@ -1,30 +1,38 @@
 package com.mapreduce.manager.service;
 
-import com.mapreduce.manager.dto.JobRequest;
-import com.mapreduce.manager.dto.JobResponse;
-import com.mapreduce.manager.entity.Job;
-import com.mapreduce.manager.entity.JobStatus;
-import com.mapreduce.manager.repository.JobRepository;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.stream.Collectors;
+import com.mapreduce.manager.dto.JobRequest;
+import com.mapreduce.manager.dto.JobResponse;
+import com.mapreduce.manager.entity.Job;
+import com.mapreduce.manager.entity.JobStatus;
+import com.mapreduce.manager.entity.TaskStatus;
+import com.mapreduce.manager.repository.JobRepository;
+import com.mapreduce.manager.repository.TaskRepository;
+import com.mapreduce.manager.repository.TaskType;
 
 @Service
 public class JobService {
+    private final ShuffleService shuffleService;
     private static final Logger log = LoggerFactory.getLogger(JobService.class);
     private final JobRepository jobRepository;
+    private final TaskRepository taskRepository;
     private final InputtSplitterService splitter;
     private final MapperService mapperService;
 
-    public JobService(JobRepository jobRepository, InputtSplitterService splitter, MapperService mapperService) {
+    public JobService(JobRepository jobRepository, TaskRepository taskRepository, InputtSplitterService splitter, MapperService mapperService, ShuffleService shuffleService) {
         this.jobRepository = jobRepository;
+        this.taskRepository = taskRepository;
         this.splitter = splitter;
         this.mapperService = mapperService;
+        this.shuffleService = shuffleService;
     }
 
 
@@ -144,6 +152,20 @@ public class JobService {
         }
         res.setProgress(progress);
         return res;
+    }
+
+    // when a map task is completed this method is called
+    @Transactional
+    public void onMapTaskCompleted(String jobId) {
+        Job job = jobRepository.findById(jobId).orElse(null);
+        if(job == null || job.getStatus() != JobStatus.MAP_PHASE) return;
+
+        long completedMappers = taskRepository.countByJobIdAndTypeAndStatus(jobId, TaskType.MAP, TaskStatus.COMPLETED);
+
+        if(completedMappers >= job.getNumMappers()) {
+            log.info("All map tasks completed for job {}, starting shuffle", jobId);
+            shuffleService.initShuffleAndReduce(jobId);
+        }
     }
 
 }
