@@ -1,47 +1,50 @@
 server:
-  port: 8081
+  port: 8080
 
 spring:
   application:
     name: manager-service
 
-    #postgresql configuration
-    datasource:
-      url: jdbc:postgresql://postgres-dds.mapreduce-system.svc.cluster.local:5432/mapreduce
-      username: ${DB_USERNAME:mapreduce_user}
-      password: ${DB_PASSWORD:mapreduce_password}
-      driver-class-name: org.postgresql.Driver
-      hikari:
-        maximum-pool-size: 10
-        minimum-idle: 5
-        connection-timeout: 30000
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_URL:http://keycloak.mapreduce-infra.svc.cluster.local:8080}/realms/${KEYCLOAK_REALM:mapreduce}
 
-    jpa:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://postgres-dds.mapreduce-system.svc.cluster.local:5432/mapreduce}
+    username: ${SPRING_DATASOURCE_USERNAME:mapreduce}
+    password: ${SPRING_DATASOURCE_PASSWORD:mapreduce}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      connection-timeout: 30000
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
       hibernate:
-        ddl-auto: update
-      properties:
-        hibernate:
-          dialect: org.hibernate.dialect.PostgreSQLDialect
-          format_sql: true
-          jdbc:
-            batch_size: 20
-      show-sql: false
-      
-    #redis configuration
-    data:
-      redis:
-        host: redis.mapreduce-system.svc.cluster.local
-        port: 6379
-        password: ${REDIS_PASSWORD}
-        timeout: 5000ms
-        lettuce:
-          pool:
-            max-active: 8
-            max-idle: 8
-            min-idle: 0
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        jdbc:
+          batch_size: 20
+    show-sql: false
+
+  data:
+    redis:
+      host: ${SPRING_REDIS_HOST:redis.mapreduce-system.svc.cluster.local}
+      port: ${SPRING_REDIS_PORT:6379}
+      timeout: 5000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
 
 minio:
-  endpoint: http://minio.mapreduce-infra.svc.cluster.local:9000
+  endpoint: ${MINIO_ENDPOINT:http://minio.mapreduce-infra.svc.cluster.local:9000}
   access-key: ${MINIO_ACCESS_KEY:minioadmin}
   secret-key: ${MINIO_SECRET_KEY:minioadmin}
   bucket:

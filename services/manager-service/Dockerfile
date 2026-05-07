@@ -1,5 +1,5 @@
 # Stage 1: Build the JAR
-FROM maven:3.9-eclipse-temurin-21 AS build
+FROM maven:3.9-eclipse-temurin-17 AS build
 WORKDIR /app
 
 # Copy entire repo
@@ -12,8 +12,8 @@ RUN mvn dependency:go-offline -B
 RUN mvn -pl services/manager-service package -DskipTests -B
 
 # Stage 2: Minimal runtime image
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:17-jre-alpine
 WORKDIR /app
 COPY --from=build /app/services/manager-service/target/*.jar app.jar
-EXPOSE 8081
+EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
