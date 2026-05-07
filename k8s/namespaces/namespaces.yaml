@@ -1,0 +1,15 @@
+# k8s/namespaces/namespaces.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mapreduce-system
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mapreduce-workers
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: mapreduce-infra
