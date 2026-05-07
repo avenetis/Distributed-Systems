@@ -1,10 +1,16 @@
 package com.mapreduce.manager.entity;
 
 import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 
+import com.mapreduce.manager.repository.TaskType;
+
 @Entity
-@Table(name = "tasks")
+@Table(name = "tasks", indexes= {
+    @Index(name = "idx_job_id", columnList = "jobId"),
+    @Index(name = "idx_status", columnList= "status")
+})
 public class Task {
 
     @Id
@@ -16,31 +22,39 @@ public class Task {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private com.mapreduce.manager.repository.TaskType type;
+    private TaskType type;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TaskStatus status;
 
+    private Integer partitionIndex; // for map tasks, indicates which input split; for reduce tasks, indicates which partition
+
+    private String inputPath; // for map tasks, the input split path; for reduce tasks, could be null or used for intermediate data
     private String workerId;
+
+    private String outputLocation;
 
     private LocalDateTime assignedAt;
     private LocalDateTime startedAt;
     private LocalDateTime completedAt;
+    private LocalDateTime createdAt;
 
-    private String outputLocation;
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        if (status == null) {
+            status = TaskStatus.PENDING;
+        }
+        if (retryCount == null) {
+            retryCount = 0;
+        }
+    }
 
-    @Column(columnDefinition = "TEXT")
     private String errorMessage;
 
     private Integer retryCount = 0;
 
-    private Integer partitionIndex;
-
-    @Column(nullable = false)
-    private LocalDateTime createdAt;
-
-    // Getters and setters
     public String getId() {
         return id;
     }
@@ -57,11 +71,11 @@ public class Task {
         this.jobId = jobId;
     }
 
-    public com.mapreduce.manager.repository.TaskType getType() {
+    public TaskType getType() {
         return type;
     }
 
-    public void setType(com.mapreduce.manager.repository.TaskType type) {
+    public void setType(TaskType type) {
         this.type = type;
     }
 
@@ -73,12 +87,36 @@ public class Task {
         this.status = status;
     }
 
+    public Integer getPartitionIndex() {
+        return partitionIndex;
+    }
+
+    public void setPartitionIndex(Integer partitionIndex) {
+        this.partitionIndex = partitionIndex;
+    }
+
+    public String getInputPath() {
+        return inputPath;
+    }
+
+    public void setInputPath(String inputPath) {
+        this.inputPath = inputPath;
+    }
+
     public String getWorkerId() {
         return workerId;
     }
 
     public void setWorkerId(String workerId) {
         this.workerId = workerId;
+    }
+
+    public String getOutputLocation() {
+        return outputLocation;
+    }
+
+    public void setOutputLocation(String outputLocation) {
+        this.outputLocation = outputLocation;
     }
 
     public LocalDateTime getAssignedAt() {
@@ -105,12 +143,12 @@ public class Task {
         this.completedAt = completedAt;
     }
 
-    public String getOutputLocation() {
-        return outputLocation;
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
     }
 
-    public void setOutputLocation(String outputLocation) {
-        this.outputLocation = outputLocation;
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
     }
 
     public String getErrorMessage() {
@@ -129,19 +167,5 @@ public class Task {
         this.retryCount = retryCount;
     }
 
-    public Integer getPartitionIndex() {
-        return partitionIndex;
-    }
-
-    public void setPartitionIndex(Integer partitionIndex) {
-        this.partitionIndex = partitionIndex;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
+    
 }

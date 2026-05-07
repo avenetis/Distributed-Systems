@@ -2,11 +2,13 @@ package com.mapreduce.manager.dto;
 
 import java.time.LocalDateTime;
 
+import com.mapreduce.manager.entity.JobStatus;
+
 public class JobResponse {
     private String id;
     private String name;
     private String userId;
-    private String status;
+    private JobStatus status;
     private String inputPath;
     private String outputPath;
     private Integer numMappers;
@@ -45,11 +47,11 @@ public class JobResponse {
         this.userId = userId;
     }
 
-    public String getStatus() {
+    public JobStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(JobStatus status) {
         this.status = status;
     }
 
