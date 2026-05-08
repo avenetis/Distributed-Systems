@@ -38,32 +38,6 @@ public class MapperService {
         jobRepository.save(job); // save status update
 
         log.info("MAP phase started for job: {}. {} map tasks pending", job.getId(), job.getNumMappers()); //
-        simulateMapCompletion(job);    
-    }
-
-        private void simulateMapCompletion(Job job) {
-        // For testing purposes, simulate map tasks completing
-        new Thread(() -> {
-            try {
-                // Wait a bit to simulate processing
-                Thread.sleep(2000);
-                
-                // Get all map tasks for this job
-                List<Task> mapTasks = taskRepository.findByJobIdAndType(job.getId(), TaskType.MAP);
-                
-                // Mark each map task as completed
-                for (Task task : mapTasks) {
-                    task.setStatus(TaskStatus.COMPLETED);
-                    task.setCompletedAt(LocalDateTime.now());
-                    taskRepository.save(task);
-                    
-                    // Update job progress
-                    onMapperTaskCompleted(task.getId());
-                }
-            } catch (InterruptedException e) {
-                log.error("Simulation interrupted", e);
-            }
-        }).start();
     }
     
     @Transactional

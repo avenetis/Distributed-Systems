@@ -61,7 +61,7 @@ public class InternalController {
 
     @PostMapping("/callbacks/task-complete")
     public ResponseEntity<Void> onTaskComplete(@RequestBody TaskCallbackPayload payload) {
-        if("DONE".equals(payload.getStatus())) {
+        if("COMPLETED".equals(payload.getStatus())) {
             workerService.onTaskCompleted(payload);
         } else if ("FAILED".equals(payload.getStatus())) {
             workerService.onTaskFailed(payload);

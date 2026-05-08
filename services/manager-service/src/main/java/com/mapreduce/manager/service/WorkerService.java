@@ -36,7 +36,7 @@ public class WorkerService {
     private final JobRepository jobRepository;
     private final ShuffleService shuffleService;
 
-    @Value("${manager.callback.url:http://localhost:8081/internal/v1/callbacks/task-completion}")
+@Value("${manager.callback.url:http://manager-service.mapreduce-system.svc.cluster.local:8080/internal/v1/callbacks/task-complete}")
     private String managerCallbackUrl;
 
     public WorkerService(JobRepository jobRepository, TaskRepository taskRepository, WorkerRepository workerRepository, ShuffleService shuffleService) {
@@ -143,7 +143,7 @@ public class WorkerService {
         String inputBucket = extractBucket(task.getInputPath());
         String inputKeys = extractKey(task.getInputPath());
 
-        return new ClaimTaskResponse(task.getId(), task.getJobId(), TaskType.MAP, inputBucket, inputKeys, "mapreduce-output", "intermediate/" + task.getJobId(), job.getMapperCodePath() != null ? job.getMapperCodePath() : "WordCountMapper", "WordCountReducer", job.getNumReducers(), managerCallbackUrl);
+        return new ClaimTaskResponse(task.getId(), task.getJobId(), TaskType.MAP, inputBucket, List.of(inputKeys), "mapreduce-output", "intermediate/" + task.getJobId(), job.getMapperCodePath() != null ? job.getMapperCodePath() : "WordCountMapper", "WordCountReducer", job.getNumReducers(), managerCallbackUrl);
     }
 
     private ClaimTaskResponse buildReduceTaskResponse(Task task, Job job) {
@@ -151,7 +151,7 @@ public class WorkerService {
         String inputBucket = "mapreduce-intermediate";
         String inputKeys = task.getInputPath();
 
-        return new ClaimTaskResponse(task.getId(), task.getJobId(), TaskType.REDUCE, inputBucket, inputKeys, job.getOutputPath(), "final/" + task.getJobId(), "WordCountReducer", task.getPartitionIndex(), managerCallbackUrl);
+        return new ClaimTaskResponse(task.getId(), task.getJobId(), TaskType.REDUCE, inputBucket, List.of(inputKeys), job.getOutputPath(), "final/" + task.getJobId(), "WordCountReducer", task.getPartitionIndex(), managerCallbackUrl);
     }
 
     private String extractBucket(String path) {

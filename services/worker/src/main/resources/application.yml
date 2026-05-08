@@ -7,6 +7,10 @@ spring:
 
 worker:
   id: ${WORKER_ID:${HOSTNAME:worker-local}}
+  address: ${WORKER_ADDRESS:http://localhost:8083}
+
+manager:
+  url: ${MANAGER_URL:http://manager-service.mapreduce-system.svc.cluster.local:8080}
 
 minio:
   endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
@@ -16,4 +20,4 @@ minio:
 logging:
   level:
     root: INFO
-    com.tuc.distributed.worker: INFO
+    com.tuc.distributed.worker: DEBUG

@@ -1,5 +1,7 @@
 package com.mapreduce.manager.dto;
 
+import java.util.List;
+
 import com.mapreduce.manager.repository.TaskType;
 
 public class ClaimTaskResponse {
@@ -8,7 +10,7 @@ public class ClaimTaskResponse {
     private String jobId;
     private TaskType taskType;
     private String inputBucket;
-    private String inputObjectKeys;
+    private List<String> inputObjectKeys;
     private String outputBucket;
     private String outputPrefix;
     private String mapperClass;
@@ -23,7 +25,7 @@ public class ClaimTaskResponse {
     }
 
     // we create one too for map tasks
-    public ClaimTaskResponse(String taskId, String jobId, TaskType taskType, String inputBucket, String inputObjectKeys, String outputBucket, String outputPrefix, String mapperClass,  String reducerClass, Integer reducersCount, String managerCallbackUrl) {
+    public ClaimTaskResponse(String taskId, String jobId, TaskType taskType, String inputBucket, List<String> inputObjectKeys, String outputBucket, String outputPrefix, String mapperClass,  String reducerClass, Integer reducersCount, String managerCallbackUrl) {
         this.hasWork = true;
         this.taskId = taskId;
         this.inputBucket = inputBucket;
@@ -40,7 +42,7 @@ public class ClaimTaskResponse {
     
     //for reduce tasks
 
-    public ClaimTaskResponse(String taskId, String jobId, TaskType taskType, String inputBucket, String inputObjectKeys, String outputBucket, String outputPrefix, String reducerClass, Integer reducePartition, String managerCallbackUrl) {
+    public ClaimTaskResponse(String taskId, String jobId, TaskType taskType, String inputBucket, List<String> inputObjectKeys, String outputBucket, String outputPrefix, String reducerClass, Integer reducePartition, String managerCallbackUrl) {
         this.hasWork = true;
         this.inputBucket = inputBucket;
         this.inputObjectKeys = inputObjectKeys;
@@ -74,7 +76,7 @@ public class ClaimTaskResponse {
         return inputBucket;
     }
 
-    public String getInputObjectKeys() {
+    public List<String> getInputObjectKeys() {
         return inputObjectKeys;
     }
 
