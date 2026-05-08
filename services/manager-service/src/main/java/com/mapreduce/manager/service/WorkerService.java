@@ -139,19 +139,14 @@ public class WorkerService {
     }
 
     private ClaimTaskResponse buildMapTaskResponse(Task task, Job job) {
-        //parse inout
-        String inputBucket = extractBucket(task.getInputPath());
-        String inputKeys = extractKey(task.getInputPath());
-
-        return new ClaimTaskResponse(task.getId(), task.getJobId(), TaskType.MAP, inputBucket, List.of(inputKeys), "mapreduce-output", "intermediate/" + task.getJobId(), job.getMapperCodePath() != null ? job.getMapperCodePath() : "WordCountMapper", "WordCountReducer", job.getNumReducers(), managerCallbackUrl);
+        return new ClaimTaskResponse(task.getId(), task.getJobId(), TaskType.MAP, "mapreduce-input", List.of(task.getInputPath()), "mapreduce-intermediate", "intermediate/" + task.getJobId(), job.getMapperCodePath() != null ? job.getMapperCodePath() : "WordCountMapper", "WordCountReducer", job.getNumReducers(), managerCallbackUrl);
     }
 
     private ClaimTaskResponse buildReduceTaskResponse(Task task, Job job) {
         //parse inout
-        String inputBucket = "mapreduce-intermediate";
-        String inputKeys = task.getInputPath();
+        List<String> inputKeys = List.of(task.getInputPath().split(",")); //intermediate/jobId/map_0,intermediate/jobId/map_1,...
 
-        return new ClaimTaskResponse(task.getId(), task.getJobId(), TaskType.REDUCE, inputBucket, List.of(inputKeys), job.getOutputPath(), "final/" + task.getJobId(), "WordCountReducer", task.getPartitionIndex(), managerCallbackUrl);
+        return new ClaimTaskResponse(task.getId(), task.getJobId(), TaskType.REDUCE, "mapreduce-intermediate", inputKeys, "mapreduce-output", "output/" + task.getJobId() + "/part-" + task.getPartitionIndex(), "WordCountReducer", task.getPartitionIndex(), managerCallbackUrl);
     }
 
     private String extractBucket(String path) {
