@@ -1,0 +1,13 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: ui-service
+
+manager:
+  url: ${MANAGER_URL:http://manager-service.mapreduce-system.svc.cluster.local:8080}
+
+logging:
+  level:
+    com.distributed.ui: DEBUG

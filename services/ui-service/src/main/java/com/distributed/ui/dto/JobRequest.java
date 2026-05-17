@@ -2,19 +2,21 @@ package com.distributed.ui.dto;
 
 public class JobRequest {
 
+    private String name;
     private String inputPath;
     private String outputPath;
-    private String mapper;
-    private String reducer;
+    private String mapperCodePath;
+    private String reducerCodePath;
+    private Integer numMappers;
+    private Integer numReducers;
+    private String userId;
 
-    public JobRequest() {
+    public String getName() {
+        return name;
     }
 
-    public JobRequest(String inputPath, String outputPath, String mapper, String reducer) {
-        this.inputPath = inputPath;
-        this.outputPath = outputPath;
-        this.mapper = mapper;
-        this.reducer = reducer;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getInputPath() {
@@ -33,19 +35,45 @@ public class JobRequest {
         this.outputPath = outputPath;
     }
 
-    public String getMapper() {
-        return mapper;
+    public String getMapperCodePath() {
+        return mapperCodePath;
     }
 
-    public void setMapper(String mapper) {
-        this.mapper = mapper;
+    public void setMapperCodePath(String mapperCodePath) {
+        this.mapperCodePath = mapperCodePath;
     }
 
-    public String getReducer() {
-        return reducer;
+    public String getReducerCodePath() {
+        return reducerCodePath;
     }
 
-    public void setReducer(String reducer) {
-        this.reducer = reducer;
+    public void setReducerCodePath(String reducerCodePath) {
+        this.reducerCodePath = reducerCodePath;
     }
+
+    public Integer getNumMappers() {
+        return numMappers;
+    }
+
+    public void setNumMappers(Integer numMappers) {
+        this.numMappers = numMappers;
+    }
+
+    public Integer getNumReducers() {
+        return numReducers;
+    }
+
+    public void setNumReducers(Integer numReducers) {
+        this.numReducers = numReducers;
+    }
+
+    public String getUserId() {
+        return userId;
+    }
+
+    public void setUserId(String userId) {
+        this.userId = userId;
+    }
+
+    
 }
