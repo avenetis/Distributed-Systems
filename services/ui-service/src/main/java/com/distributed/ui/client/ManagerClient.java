@@ -16,5 +16,5 @@ public interface ManagerClient {
     JobStatusResponse getJobStatus(@PathVariable String jobId);
 
     @GetMapping("/api/v1/jobs/{jobId}/result")
-    String getJobResult(@PathVariable String jobId);
+    JobStatusResponse getJobResult(@PathVariable String jobId);
 }

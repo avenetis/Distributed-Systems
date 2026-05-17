@@ -27,7 +27,7 @@ public class JobController {
     }
 
     @GetMapping("/{jobId}/result")
-    public String getJobResult(@PathVariable String jobId) {
+    public JobStatusResponse getJobResult(@PathVariable String jobId) {
         return jobService.getJobResult(jobId);
     }
 }

@@ -6,6 +6,7 @@ public class JobStatusResponse {
     private String status;
     private int progress;
     private String message;
+    private String outputPath;
 
     public JobStatusResponse() {
     }
@@ -47,5 +48,13 @@ public class JobStatusResponse {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public String getOutputPath() {
+        return outputPath;
+    }
+
+    public void setOutputPath(String outputPath) {
+        this.outputPath = outputPath;
     }
 }
