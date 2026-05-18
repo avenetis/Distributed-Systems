@@ -3,6 +3,13 @@ package com.mapreduce.manager.service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.Comparator;
+
+import io.minio.GetObjectArgs;
+import io.minio.MinioClient;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +20,7 @@ import com.mapreduce.manager.dto.JobRequest;
 import com.mapreduce.manager.dto.JobResponse;
 import com.mapreduce.manager.entity.Job;
 import com.mapreduce.manager.entity.JobStatus;
+import com.mapreduce.manager.entity.Task;
 import com.mapreduce.manager.entity.TaskStatus;
 import com.mapreduce.manager.repository.JobRepository;
 import com.mapreduce.manager.repository.TaskRepository;
@@ -26,13 +34,15 @@ public class JobService {
     private final TaskRepository taskRepository;
     private final InputtSplitterService splitter;
     private final MapperService mapperService;
+    private final MinioClient minioClient;
 
-    public JobService(JobRepository jobRepository, TaskRepository taskRepository, InputtSplitterService splitter, MapperService mapperService, ShuffleService shuffleService) {
+    public JobService(JobRepository jobRepository, TaskRepository taskRepository, InputtSplitterService splitter, MapperService mapperService, ShuffleService shuffleService, MinioClient minioClient) {
         this.jobRepository = jobRepository;
         this.taskRepository = taskRepository;
         this.splitter = splitter;
         this.mapperService = mapperService;
         this.shuffleService = shuffleService;
+        this.minioClient = minioClient;
     }
 
 
@@ -90,6 +100,54 @@ public class JobService {
     public JobResponse getJobStatus(String jobId) {
         Job job = jobRepository.findById(jobId).orElseThrow(() -> new RuntimeException("Job not found:" + jobId));
         return convertToResponse(job);
+    }
+
+    public String getJobResult(String jobId) {
+        Job job = jobRepository.findById(jobId)
+                .orElseThrow(() -> new RuntimeException("Job not found: " + jobId));
+
+        if (job.getStatus() != JobStatus.COMPLETED) {
+            throw new IllegalStateException("Job is not completed yet. Current status: " + job.getStatus());
+        }
+
+        List<String> outputKeys = taskRepository.findByJobIdAndType(jobId, TaskType.REDUCE).stream()
+                .filter(task -> task.getStatus() == TaskStatus.COMPLETED)
+                .sorted(Comparator.comparing(Task::getPartitionIndex))
+                .flatMap(task -> List.of(task.getOutputLocation().split(",")).stream())
+                .map(String::trim)
+                .filter(key -> !key.isBlank())
+                .toList();
+
+        if (outputKeys.isEmpty()) {
+            throw new IllegalStateException("No output files found for completed job: " + jobId);
+        }
+
+        StringBuilder result = new StringBuilder();
+
+        for (String outputKey : outputKeys) {
+            result.append(readTextFromMinio("mapreduce-output", outputKey));
+            if (!result.toString().endsWith("\n")) {
+                result.append('\n');
+            }
+        }
+
+        return result.toString();
+    }
+
+    private String readTextFromMinio(String bucket, String objectKey) {
+        try (
+                var stream = minioClient.getObject(
+                        GetObjectArgs.builder()
+                                .bucket(bucket)
+                                .object(objectKey)
+                                .build()
+                );
+                var reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))
+        ) {
+            return reader.lines().collect(Collectors.joining("\n"));
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to read output from MinIO: " + bucket + "/" + objectKey, e);
+        }
     }
 
     public List<JobResponse> listJobs(String userId, int page, int size) {

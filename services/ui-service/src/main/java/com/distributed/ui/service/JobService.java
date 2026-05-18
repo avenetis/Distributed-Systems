@@ -24,7 +24,7 @@ public class JobService {
         return managerClient.getJobStatus(jobId);
     }
 
-    public JobStatusResponse getJobResult(String jobId) {  
-        return managerClient.getJobStatus(jobId);
+    public String getJobResult(String jobId) {
+        return managerClient.getJobResult(jobId);
     }
 }

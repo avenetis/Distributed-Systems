@@ -239,7 +239,7 @@ public class WorkerService {
         if(job == null) return;
 
         long completedReducers = taskRepository.countByJobIdAndTypeAndStatus(jobId, TaskType.REDUCE, TaskStatus.COMPLETED);
-        job.setCompletedMappers((int) completedReducers);
+        job.setCompletedReducers((int) completedReducers);
         jobRepository.save(job);
 
         log.info("Job {} reduce progress: {}/{}", jobId, completedReducers, job.getNumReducers());

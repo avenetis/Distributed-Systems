@@ -51,14 +51,33 @@ public class ShuffleService {
         // for every reducer partition, collect all intermediate file locations
         Map<Integer, List<String>> partitionToInter = new HashMap<>();
 
-        for(Task mapTask : mapTasks) {
-            String mapOutputLocation = mapTask.getOutputLocation();
-            // the map task output location contains multiple partition files
-            // worker saves them as {outputPrefix}/{taskId}/part-{partition}.txt
+        for (Task mapTask : mapTasks) {
+            String outputLocation = mapTask.getOutputLocation();
 
-            for(int partition = 0; partition < job.getNumReducers(); partition++) {
-                String intermediateFile = String.format("%s/part-%d.txt", mapOutputLocation.replace("/" + mapTask.getId(), ""), partition);
-                partitionToInter.computeIfAbsent(partition, k -> new ArrayList<>()).add(intermediateFile);
+            if (outputLocation == null || outputLocation.isBlank()) {
+                log.warn("Completed map task {} has no output location", mapTask.getId());
+                continue;
+            }
+
+            String[] outputKeys = outputLocation.split(",");
+
+            for (String outputKey : outputKeys) {
+                String trimmedKey = outputKey.trim();
+
+                if (trimmedKey.isEmpty()) {
+                    continue;
+                }
+
+                Integer partition = extractPartition(trimmedKey);
+
+                if (partition == null) {
+                    log.warn("Could not extract partition from intermediate output key: {}", trimmedKey);
+                    continue;
+                }
+
+                partitionToInter
+                        .computeIfAbsent(partition, k -> new ArrayList<>())
+                        .add(trimmedKey);
             }
         }
 
@@ -90,5 +109,29 @@ public class ShuffleService {
 
         log.info("Shuffle phase for job {}. {} REDUCE tasks created", jobId, job.getNumReducers());
     }
+
+
+    private Integer extractPartition(String objectKey) {
+        String marker = "part-";
+        int start = objectKey.lastIndexOf(marker);
+
+        if (start < 0) {
+            return null;
+        }
+
+        start += marker.length();
+
+        int end = objectKey.indexOf(".txt", start);
+        if (end < 0) {
+            end = objectKey.length();
+        }
+
+        try {
+            return Integer.parseInt(objectKey.substring(start, end));
+        } catch (NumberFormatException e) {
+            return null;
+        }
+    }
+
 
 }

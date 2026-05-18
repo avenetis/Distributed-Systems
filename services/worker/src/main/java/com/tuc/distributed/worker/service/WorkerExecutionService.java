@@ -101,7 +101,7 @@ public class WorkerExecutionService {
             outputKeys.add(objectKey);//Κρατάμε το όνομα του αρχείου που μόλις ανεβάσαμε στην αρχική μας λίστα
         }
 
-        return new TaskResponse(request.taskId(), TaskStatus.DONE, "Map task completed", outputKeys);
+        return new TaskResponse(request.taskId(), TaskStatus.COMPLETED, "Map task completed", outputKeys);
     }
 
     private TaskResponse executeReduce(TaskRequest request) {
@@ -143,7 +143,7 @@ public class WorkerExecutionService {
         int partition = request.reducePartition() == null ? 0 : request.reducePartition();
         String objectKey = "%s/reduce-%d.txt".formatted(request.outputPrefix(), partition);
         storageClient.writeText(request.outputBucket(), objectKey, finalOutput.toString());
-        return new TaskResponse(request.taskId(), TaskStatus.DONE, "Reduce task completed", List.of(objectKey));
+        return new TaskResponse(request.taskId(), TaskStatus.COMPLETED, "Reduce task completed", List.of(objectKey));
     }
 
     private void notifyManager(TaskRequest request, TaskStatus status, String details, List<String> outputKeys) {

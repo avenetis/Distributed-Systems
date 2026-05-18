@@ -13,6 +13,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
+import java.util.concurrent.atomic.AtomicBoolean;
+
 import com.tuc.distributed.worker.api.TaskRequest;
 import com.tuc.distributed.worker.domain.TaskType;
 
@@ -23,13 +25,15 @@ public class WorkerPollingService {
     private final WorkerExecutionService workerExecutionService;
     private final RestClient restClient = RestClient.builder().build();
 
+    private final AtomicBoolean busy = new AtomicBoolean(false);
+
     @Value("${worker.id:${HOSTNAME:worker-local}}")
     private String workerId;
 
     @Value("${manager.url:http://manager-service.mapreduce-system.svc.cluster.local:8080}")
     private String managerUrl;
 
-    @Value("${worker.address:http://localhost:8080}")
+    @Value("${worker.address:http://localhost:8083}")
     private String workerAddress;
 
     public WorkerPollingService(WorkerExecutionService workerExecutionService) {
@@ -56,6 +60,10 @@ public class WorkerPollingService {
     // poll manager for tasks every 5 secs
     @Scheduled(fixedDelay=5000)
     public void pollForTasks() {
+        if (busy.get()) {
+            logger.debug("Worker {} is busy, skipping poll", workerId);
+            return;
+        }
         try {
             var resp = restClient.get()
                 .uri(managerUrl + "/internal/v1/workers/{workerId}/claim-task", workerId)
@@ -64,7 +72,7 @@ public class WorkerPollingService {
             
                 if(resp.getStatusCode().is2xxSuccessful() && resp.getBody() != null) {
                     ClaimTaskResponse claimedTask = resp.getBody();
-                    if(claimedTask.isHasWork()) {
+                    if (claimedTask.isHasWork() && busy.compareAndSet(false, true)) {
                         logger.info("Worker {} claimed task {}", workerId, claimedTask.getTaskId());
                         executeTask(claimedTask);
                     }
@@ -107,7 +115,13 @@ public class WorkerPollingService {
                         claimedTask.getManagerCallbackUrl());
         
         // execute in seperate thread to avoid blocking the polling
-        new Thread(() -> workerExecutionService.execute(request)).start();;
+        new Thread(() -> {
+            try {
+                workerExecutionService.execute(request);
+            } finally {
+                busy.set(false);
+            }
+        }).start();
     }
 
     //deserialize the managers response
