@@ -17,6 +17,7 @@ public interface TaskRepository extends JpaRepository<Task, String> {
     List<Task> findByJobId(String jobId);
     List<Task> findByJobIdAndType(String jobId, TaskType type);
     List<Task> findByStatus(TaskStatus status);
+    List<Task> findByJobIdAndStatus(String jobId, TaskStatus status);
 
     @Query("SELECT t FROM Task t WHERE t.status = :status AND t.type = :type")
     List<Task> findPendindTasksByType(@Param("status") TaskStatus status, @Param("type") TaskType type);
