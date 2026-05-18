@@ -42,6 +42,12 @@ public class JobController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/{jobId}/result")
+    public ResponseEntity<String> getJobResult(@PathVariable String jobId) {
+        String result = jobService.getJobResult(jobId);
+        return ResponseEntity.ok(result);
+    }
+
     @GetMapping
     public ResponseEntity<List<JobResponse>> listJobs(
         @RequestParam(required = false) String userId,

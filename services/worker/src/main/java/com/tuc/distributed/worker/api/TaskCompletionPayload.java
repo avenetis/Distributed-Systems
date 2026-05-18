@@ -13,3 +13,5 @@ public record TaskCompletionPayload(
         List<String> outputObjectKeys
 ) {
 }
+/*Το TaskCompletionPayload είναι πιο πολύ callback/update:
+Worker → Manager*/

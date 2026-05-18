@@ -21,14 +21,14 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints — no token needed
                 .requestMatchers(
-                    "/health",
-                    "/actuator/health",
-                    "/actuator/info",
-                    "/actuator/metrics",
-                    "/internal/v1/workers/register",
-                    "/internal/v1/workers/heartbeat",
-                    "/internal/v1/workers/claim-task",
-                    "/internal/v1/callbacks/**"
+                        "/health",
+                        "/actuator/health",
+                        "/actuator/info",
+                        "/actuator/metrics",
+                        "/internal/v1/workers/register",
+                        "/internal/v1/workers/heartbeat",
+                        "/internal/v1/workers/{workerId}/claim-task",
+                        "/internal/v1/callbacks/**"
                 ).permitAll()
                 // Everything else requires a valid JWT
                 .anyRequest().authenticated()
