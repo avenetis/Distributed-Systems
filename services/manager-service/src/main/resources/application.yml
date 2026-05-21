@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: ${SERVER_PORT:8091}
 
 spring:
   application:
@@ -9,10 +9,10 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${KEYCLOAK_URL:http://keycloak.mapreduce-infra.svc.cluster.local:8080}/realms/${KEYCLOAK_REALM:mapreduce}
+          issuer-uri: ${KEYCLOAK_URL:http://localhost:8080}/realms/${KEYCLOAK_REALM:mapreduce}
 
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://postgres-dds.mapreduce-system.svc.cluster.local:5432/mapreduce}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:55432/mapreduce}
     username: ${SPRING_DATASOURCE_USERNAME:mapreduce}
     password: ${SPRING_DATASOURCE_PASSWORD:mapreduce}
     driver-class-name: org.postgresql.Driver
@@ -34,7 +34,7 @@ spring:
 
   data:
     redis:
-      host: ${SPRING_REDIS_HOST:redis.mapreduce-system.svc.cluster.local}
+      host: ${SPRING_REDIS_HOST:localhost}
       port: ${SPRING_REDIS_PORT:6379}
       timeout: 5000ms
       lettuce:
@@ -43,8 +43,13 @@ spring:
           max-idle: 8
           min-idle: 0
 
+manager:
+  worker-auth-token: ${WORKER_AUTH_TOKEN:dev-worker-token-change-me}
+  callback:
+    url: ${MANAGER_CALLBACK_URL:http://localhost:8091/internal/v1/callbacks/task-complete}
+
 minio:
-  endpoint: ${MINIO_ENDPOINT:http://minio.mapreduce-infra.svc.cluster.local:9000}
+  endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
   access-key: ${MINIO_ACCESS_KEY:minioadmin}
   secret-key: ${MINIO_SECRET_KEY:minioadmin}
   bucket:

@@ -4,42 +4,69 @@ server:
 spring:
   application:
     name: manager-service
-  
+
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_URL:http://localhost:8080}/realms/${KEYCLOAK_REALM:mapreduce}
+
   datasource:
     url: jdbc:h2:mem:mapreduce_db;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
     driver-class-name: org.h2.Driver
     username: sa
     password: password
-  
+
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
       ddl-auto: create-drop
     show-sql: true
-  
+
   h2:
     console:
       enabled: true
       path: /h2-console
-  
+
   data:
     redis:
       host: localhost
       port: 6379
       timeout: 1000ms
 
+manager:
+  worker-auth-token: ${WORKER_AUTH_TOKEN:dev-worker-token-change-me}
+
 minio:
   enabled: false
   endpoint: http://localhost:9000
   access-key: dummy
   secret-key: dummy
+  bucket:
+    input: mapreduce-input
+    intermediate: mapreduce-intermediate
+    output: mapreduce-output
+    code: mapreduce-code
 
 logging:
   level:
     com.mapreduce.manager: DEBUG
+    org.springframework.web: INFO
+    org.hibernate: WARN
 
 management:
   endpoints:
     web:
       exposure:
         include: health,info
+
+job:
+  default:
+    num-mappers: 4
+    num-reducers: 2
+  task:
+    timeout-seconds: 300
+    max-retries: 3
+  worker:
+    heartbeat-interval-seconds: 10
+    heartbeat-timeout-seconds: 30

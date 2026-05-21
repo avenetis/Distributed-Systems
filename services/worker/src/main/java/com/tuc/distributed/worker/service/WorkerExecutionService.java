@@ -71,7 +71,7 @@ public class WorkerExecutionService {
 
     private TaskResponse executeMap(TaskRequest request) {
         Mapper mapper = mapperRegistry.get(request.mapperClass());
-        int reducersCount = request.reducersCount() == null ? 1 : request.reducersCount(); //αν true βάλε στο reducerCount =1
+        int reducersCount = request.reducersCount() == null ? 1 : request.reducersCount(); //αν true(null) βάλε στο reducerCount =1
         Map<Integer, List<KeyValue>> partitions = new HashMap<>(); //Το Integer (το Key του Map): Είναι ο αριθμός του Reducer (το Partition ID)
         // Το List<KeyValue> (το Value του Map): Είναι μια λίστα που θα περιέχει αντικείμενα τύπου KeyValue (δηλαδή ζευγάρια όπως ("java", "1"))
         for (int i = 0; i < reducersCount; i++) {//partion 0 -> empty list

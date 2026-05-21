@@ -3,6 +3,7 @@ package com.tuc.distributed.worker.client;
 import com.tuc.distributed.worker.api.TaskCompletionPayload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -11,7 +12,11 @@ import org.springframework.web.client.RestClient;
 public class HttpManagerClient implements ManagerClient {
 
     private static final Logger log = LoggerFactory.getLogger(HttpManagerClient.class);
+
     private final RestClient restClient = RestClient.builder().build();
+
+    @Value("${worker.auth-token:}")
+    private String workerAuthToken;
 
     @Override
     public void sendCompletion(String callbackUrl, TaskCompletionPayload payload) {
@@ -27,6 +32,7 @@ public class HttpManagerClient implements ManagerClient {
             try {
                 restClient.post()
                         .uri(callbackUrl)
+                        .header("X-Worker-Token", workerAuthToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .body(payload)
                         .retrieve()

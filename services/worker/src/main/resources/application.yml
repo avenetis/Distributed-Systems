@@ -8,6 +8,7 @@ spring:
 worker:
   id: ${WORKER_ID:${HOSTNAME:worker-local}}
   address: ${WORKER_ADDRESS:http://localhost:8083}
+  auth-token: ${WORKER_AUTH_TOKEN:dev-worker-token-change-me}
 
 manager:
   url: ${MANAGER_URL:http://manager-service.mapreduce-system.svc.cluster.local:8080}
