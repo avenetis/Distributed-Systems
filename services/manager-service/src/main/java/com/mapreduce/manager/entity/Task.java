@@ -30,9 +30,10 @@ public class Task {
 
     private Integer partitionIndex; // for map tasks, indicates which input split; for reduce tasks, indicates which partition
 
+    @Column(name = "input_path", length = 2000)
     private String inputPath; // for map tasks, the input split path; for reduce tasks, could be null or used for intermediate data
     private String workerId;
-
+    @Column(name = "output_location", length = 2000)
     private String outputLocation;
 
     private LocalDateTime assignedAt;
