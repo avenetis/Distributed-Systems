@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 import com.distributed.ui.client.ManagerClient;
 import com.distributed.ui.dto.JobRequest;
 import com.distributed.ui.dto.JobResponse;
-import com.distributed.ui.dto.JobStatusResponse;
 
 @Service
 public class JobService {
@@ -20,8 +19,8 @@ public class JobService {
         return managerClient.submitJob(request);
     }
 
-    public JobStatusResponse getJobStatus(String jobId) {
-        return managerClient.getJobStatus(jobId);
+    public JobResponse getJobStatus(String jobId) {
+    return managerClient.getJobStatus(jobId);
     }
 
     public String getJobResult(String jobId) {
