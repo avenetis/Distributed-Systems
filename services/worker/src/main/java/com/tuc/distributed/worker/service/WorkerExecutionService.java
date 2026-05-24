@@ -74,11 +74,11 @@ public class WorkerExecutionService {
         int reducersCount = request.reducersCount() == null ? 1 : request.reducersCount(); //αν true(null) βάλε στο reducerCount =1
         Map<Integer, List<KeyValue>> partitions = new HashMap<>(); //Το Integer (το Key του Map): Είναι ο αριθμός του Reducer (το Partition ID)
         // Το List<KeyValue> (το Value του Map): Είναι μια λίστα που θα περιέχει αντικείμενα τύπου KeyValue (δηλαδή ζευγάρια όπως ("java", "1"))
-        for (int i = 0; i < reducersCount; i++) {//partion 0 -> empty list
-            partitions.put(i, new ArrayList<>()); //partion 1 -> empty list
+        for (int i = 0; i < reducersCount; i++) {//partion 0 -> empty list    | Προσωρινά καλάθια στην RAM
+            partitions.put(i, new ArrayList<>()); //partion 1 -> empty list   | Προσωρινά καλάθια στην RAM
         }
 
-        for (String inputKey : request.inputObjectKeys()) {
+        for (String inputKey : request.inputObjectKeys()) {//["splits/split_0.txt", "splits/split_1.txt"].
             String content = storageClient.readText(request.inputBucket(), inputKey);// παίρνει το bucket και το αποθηκεύη στην ram σαν string
             String[] lines = content.split("\\R");// αν είχαμε hello world\n hello me θα γίνει [hello word,hello me]
             for (String line : lines) {
@@ -108,7 +108,7 @@ public class WorkerExecutionService {
         Reducer reducer = reducerRegistry.get(request.reducerClass());
         Map<String, List<String>> grouped = new HashMap<>();
 // Αυτά είναι τα part-X.txt αρχεία από ΟΛΟΥΣ τους Mappers που ανήκουν σε αυτό το partition.
-        for (String inputKey : request.inputObjectKeys()) {
+        for (String inputKey : request.inputObjectKeys()) {//["intermediate/task-1/part-0.txt", "intermediate/task-2/part-0.txt"]
             String content = storageClient.readText(request.inputBucket(), inputKey);
             if (content.isBlank()) {//αγνοεί άδεια αρχεία
                 continue;
@@ -123,6 +123,8 @@ public class WorkerExecutionService {
                     throw new IllegalArgumentException("Invalid intermediate record: " + line);
                 }//Κάνω την συγκέντρωση εδώ
                 grouped.computeIfAbsent(parts[0], ignored -> new ArrayList<>()).add(parts[1]);
+ //Αν η λέξη ΔΕΝ υπάρχει (: Τότε ενεργοποιείται το δεύτερο σκέλος ignored -> new ArrayList<>(). Η Java δημιουργεί  μια νέα, άδεια λίστα, τη βάζει μέσα στο Map για τη λέξη "apple" και επιστρέφει αυτή ακριβώς τη νέα λίστα.
+// Αν η λέξη ΥΠΑΡΧΕΙ ήδη: Τότε η Java αγνοεί τη δημιουργία νέας λίστας και απλώς επιστρέφει την ήδη υπάρχουσα λίστα που είχε φτιαχτεί σε προηγούμενη επανάληψη.
             }
         }
 
@@ -132,7 +134,7 @@ public class WorkerExecutionService {
                         Map.Entry::getKey,
                         Map.Entry::getValue,
                         (a, b) -> a,
-                        LinkedHashMap::new
+                        LinkedHashMap::new/// Το LinkedHashMap διαθέτει δείκτες (pointers) προς το προηγούμενο και επόμενο στοιχείο, ωστε να διατηρηθεί η αλφαβητική σειρά
                 ));
 
         StringBuilder finalOutput = new StringBuilder();//τρέχβω reducer για κάθε key

@@ -9,7 +9,7 @@ public class PartitionService {
         if (reducersCount <= 0) {
             throw new IllegalArgumentException("reducersCount must be > 0");
         }
-        return Math.floorMod(key.hashCode(), reducersCount);
+        return Math.floorMod(key.hashCode(), reducersCount);//x-([x/y]*y)
     }//key.hashCode() % reducersCount Κάνουμε Static hashing
 }//h(key.hashCode()) = key.hashCode() % reducersCount
 //και απλά αντι να αποθηκεύσουμε σε κάποιο array σε κάποια κλάση

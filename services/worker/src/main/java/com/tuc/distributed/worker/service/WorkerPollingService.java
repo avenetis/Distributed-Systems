@@ -21,10 +21,10 @@ import com.tuc.distributed.worker.domain.TaskType;
 public class WorkerPollingService {
     private static Logger logger = LoggerFactory.getLogger(WorkerPollingService.class);
 
-    private final WorkerExecutionService workerExecutionService;
-    private final RestClient restClient = RestClient.builder().build();
+    private final WorkerExecutionService workerExecutionService;//για execute map και execue Reduce
+    private final RestClient restClient = RestClient.builder().build();//εργαλείο του Spring για να κάνει HTTP κλήσεις (GET, POST) στον Manager μέσω δικτύου
 
-    private final AtomicBoolean busy = new AtomicBoolean(false);
+    private final AtomicBoolean busy = new AtomicBoolean(false); // flag για race condition
 
     @Value("${worker.id:${HOSTNAME:worker-local}}")
     private String workerId;
@@ -42,17 +42,17 @@ public class WorkerPollingService {
         this.workerExecutionService = workerExecutionService;
     }
 
-    @EventListener(ApplicationReadyEvent.class)
+    @EventListener(ApplicationReadyEvent.class)//Μόλις η Spring Boot εφαρμογή ξεκινήσει, τρέξε αυτή την μέθοδο
     public void registerWithManager() {
         logger.info("Registering worker {} with manager at {}", workerId, managerUrl);
         try {
-            restClient.post()
-                    .uri(managerUrl + "/internal/v1/workers/register")
-                    .header("X-Worker-Token", workerAuthToken)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .body(Map.of("workerId", workerId, "address", workerAddress))
-                    .retrieve()
-                    .toBodilessEntity();
+            restClient.post()//στέλνω δεδομένα
+                    .uri(managerUrl + "/internal/v1/workers/register")//"http://192.168.1.10:8080" + "/internal/v1/workers/register"
+                    .header("X-Worker-Token", workerAuthToken)//περιέχεται στα metadata του http πακέτου για security λόγους
+                    .contentType(MediaType.APPLICATION_JSON)//τύπος περιεχομένου
+                    .body(Map.of("workerId", workerId, "address", workerAddress))//serialize σε json
+                    .retrieve()//ήταν στην RAM τώρα εκτελεί το HTTP request
+                    .toBodilessEntity();//ο Manager απαντάει στον Worker Έναν κωδικό κατάστασης (HTTP Status Code): 200 OK
 
             logger.info("Worker {} registered successfully", workerId);
         } catch (Exception e) {
@@ -60,7 +60,7 @@ public class WorkerPollingService {
         }
     }
 
-    @Scheduled(fixedDelay = 5000)
+    @Scheduled(fixedDelay = 5000)//Η μέθοδος θα εκτελείται ασταμάτητα κάθε 5 δευτερόλεπτα
     public void pollForTasks() {
         if (busy.get()) {
             logger.debug("Worker {} is busy, skipping poll", workerId);
@@ -72,11 +72,13 @@ public class WorkerPollingService {
                     .uri(managerUrl + "/internal/v1/workers/{workerId}/claim-task", workerId)
                     .header("X-Worker-Token", workerAuthToken)
                     .retrieve()
-                    .toEntity(ClaimTaskResponse.class);
+                    .toEntity(ClaimTaskResponse.class);//παίρνει ένα json απο εδώ "/internal/v1/workers/{workerId}/claim-task"
+//και μετατρέπει το json σε java object
 
-            if (resp.getStatusCode().is2xxSuccessful() && resp.getBody() != null) {
+            if (resp.getStatusCode().is2xxSuccessful() && resp.getBody() != null) {//Ελέγχει αν η κλήση στο δίκτυο πέτυχε και αν ο Manager μας έστειλε όντως το JSON γράμμα
                 ClaimTaskResponse claimedTask = resp.getBody();
-                if (claimedTask.isHasWork() && busy.compareAndSet(false, true)) {
+                if (claimedTask.isHasWork() && busy.compareAndSet(false, true)) {//Concurrency Hadling
+//Ελέγχει αν ο Manager έχει κάποιο MapReduce Job ωστε να αναθέσει στον Worker και μετά κοιτάει αν ο worker ειναι ελεύθερο ή όχι για αποφυγή race condition
                     logger.info("Worker {} claimed task {}", workerId, claimedTask.getTaskId());
                     executeTask(claimedTask);
                 }
@@ -89,9 +91,9 @@ public class WorkerPollingService {
     }
 
     @Scheduled(fixedDelay = 10000)
-    public void sendHeartbeat() {
+    public void sendHeartbeat() {//Είναι σε Περίπτωση που ο Worker πεθάνει να το κατάλαβει ο Manager και να το διαχειριστεί κατάλληλα
         try {
-            restClient.post()
+            restClient.post()//Κάνει HTTP POST στο /heartbeat στέλνοντας ένα JSON που λέει status: ACTIVE
                     .uri(managerUrl + "/internal/v1/workers/heartbeat")
                     .header("X-Worker-Token", workerAuthToken)
                     .contentType(MediaType.APPLICATION_JSON)
