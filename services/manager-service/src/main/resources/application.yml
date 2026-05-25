@@ -4,15 +4,13 @@ server:
 spring:
   application:
     name: manager-service
-
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${KEYCLOAK_URL:http://localhost:8080}/realms/${KEYCLOAK_REALM:mapreduce}
-
+          issuer-uri: ${KEYCLOAK_URL:http://keycloak.mapreduce-infra.svc.cluster.local:8080}/realms/${KEYCLOAK_REALM:mapreduce}
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:55432/mapreduce}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://postgres-dds.mapreduce-system.svc.cluster.local:5432/mapreduce}
     username: ${SPRING_DATASOURCE_USERNAME:mapreduce}
     password: ${SPRING_DATASOURCE_PASSWORD:mapreduce}
     driver-class-name: org.postgresql.Driver
@@ -20,7 +18,6 @@ spring:
       maximum-pool-size: 10
       minimum-idle: 5
       connection-timeout: 30000
-
   jpa:
     hibernate:
       ddl-auto: update
@@ -31,10 +28,9 @@ spring:
         jdbc:
           batch_size: 20
     show-sql: false
-
   data:
     redis:
-      host: ${SPRING_REDIS_HOST:localhost}
+      host: ${SPRING_REDIS_HOST:redis.mapreduce-system.svc.cluster.local}
       port: ${SPRING_REDIS_PORT:6379}
       timeout: 5000ms
       lettuce:
@@ -44,12 +40,12 @@ spring:
           min-idle: 0
 
 manager:
-  worker-auth-token: ${WORKER_AUTH_TOKEN:dev-worker-token-change-me}
+  worker-auth-token: ${MANAGER_WORKER_AUTH_TOKEN:mapreduce-worker-secret-2026}
   callback:
-    url: ${MANAGER_CALLBACK_URL:http://localhost:8091/internal/v1/callbacks/task-complete}
+    url: ${MANAGER_CALLBACK_URL:http://manager-service.mapreduce-system.svc.cluster.local:8080/internal/v1/callbacks/task-complete}
 
 minio:
-  endpoint: ${MINIO_ENDPOINT:http://localhost:9000}
+  endpoint: ${MINIO_ENDPOINT:http://minio.mapreduce-infra.svc.cluster.local:9000}
   access-key: ${MINIO_ACCESS_KEY:minioadmin}
   secret-key: ${MINIO_SECRET_KEY:minioadmin}
   bucket:
@@ -61,10 +57,13 @@ minio:
 logging:
   level:
     com.mapreduce.manager: DEBUG
-    org.springframework.web: INFO
-    org.hibernate: WARN
+    org.springframework.web: WARN
+    org.hibernate: ERROR
+    org.springframework.security: WARN
+    org.apache.tomcat: ERROR
+    org.springframework.orm: ERROR
   pattern:
-    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    console: "%d{HH:mm:ss} [%level] %logger{20} - %msg%n"
 
 management:
   endpoints:
