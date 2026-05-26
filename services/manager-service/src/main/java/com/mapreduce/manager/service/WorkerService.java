@@ -239,42 +239,13 @@ public class WorkerService {
         handleTaskFailure(taskOpt.get(), payload.getDetails());
     }
 
-    private void handleMapTaskCompletion(String jobId) {
-        Job job = jobRepository.findById(jobId).orElse(null);
-        if (job == null) {
-            return;
-        }
-
-        long completedMappers = taskRepository.countByJobIdAndTypeAndStatus(
-                jobId,
-                TaskType.MAP,
-                TaskStatus.COMPLETED
-        );
-
-        job.setCompletedMappers((int) completedMappers);
-        jobRepository.save(job);
-
-        log.info("Job {} map progress: {}/{}", jobId, completedMappers, job.getNumMappers());
-
-        if (completedMappers >= job.getNumMappers() && job.getStatus() == JobStatus.MAP_PHASE) {
-            log.info("All map tasks completed for job {}, starting shuffle and reduce", jobId);
-            job.setStatus(JobStatus.SHUFFLE_PHASE);
-            jobRepository.save(job);
-            shuffleService.initShuffleAndReduce(jobId);
-        }
-    }
-
+    @Transactional
     private void handleReduceTaskCompletion(String jobId) {
-        Job job = jobRepository.findById(jobId).orElse(null);
-        if (job == null) {
-            return;
-        }
+        Job job = jobRepository.findByIdForUpdate(jobId).orElse(null);
+        if (job == null) return;
 
         long completedReducers = taskRepository.countByJobIdAndTypeAndStatus(
-                jobId,
-                TaskType.REDUCE,
-                TaskStatus.COMPLETED
-        );
+            jobId, TaskType.REDUCE, TaskStatus.COMPLETED);
 
         job.setCompletedReducers((int) completedReducers);
         jobRepository.save(job);
@@ -286,6 +257,27 @@ public class WorkerService {
             job.setCompletedAt(LocalDateTime.now());
             jobRepository.save(job);
             log.info("Job {} completed successfully", jobId);
+        }
+    }
+
+    @Transactional
+    private void handleMapTaskCompletion(String jobId) {
+        Job job = jobRepository.findByIdForUpdate(jobId).orElse(null);
+        if (job == null) return;
+
+        long completedMappers = taskRepository.countByJobIdAndTypeAndStatus(
+            jobId, TaskType.MAP, TaskStatus.COMPLETED);
+
+        job.setCompletedMappers((int) completedMappers);
+        jobRepository.save(job);
+
+        log.info("Job {} map progress: {}/{}", jobId, completedMappers, job.getNumMappers());
+
+        if (completedMappers >= job.getNumMappers() && job.getStatus() == JobStatus.MAP_PHASE) {
+            log.info("All map tasks completed for job {}, starting shuffle and reduce", jobId);
+            job.setStatus(JobStatus.SHUFFLE_PHASE);
+            jobRepository.save(job);
+            shuffleService.initShuffleAndReduce(jobId);
         }
     }
 
