@@ -173,7 +173,7 @@ public class WorkerService {
                 "mapreduce-intermediate",
                 "intermediate/" + task.getJobId(),
                 job.getMapperCodePath() != null ? job.getMapperCodePath() : "WordCountMapper",
-                "WordCountReducer",
+                job.getReducerCodePath() != null ? job.getReducerCodePath() : "WordCountReducer",
                 job.getNumReducers(),
                 managerCallbackUrl
         );
@@ -190,7 +190,7 @@ public class WorkerService {
                 inputKeys,
                 "mapreduce-output",
                 "output/" + task.getJobId() + "/part-" + task.getPartitionIndex(),
-                "WordCountReducer",
+                job.getReducerCodePath() != null ? job.getReducerCodePath() : "WordCountReducer",
                 task.getPartitionIndex(),
                 managerCallbackUrl
         );
@@ -239,7 +239,6 @@ public class WorkerService {
         handleTaskFailure(taskOpt.get(), payload.getDetails());
     }
 
-    @Transactional
     private void handleReduceTaskCompletion(String jobId) {
         Job job = jobRepository.findByIdForUpdate(jobId).orElse(null);
         if (job == null) return;
@@ -260,7 +259,6 @@ public class WorkerService {
         }
     }
 
-    @Transactional
     private void handleMapTaskCompletion(String jobId) {
         Job job = jobRepository.findByIdForUpdate(jobId).orElse(null);
         if (job == null) return;
