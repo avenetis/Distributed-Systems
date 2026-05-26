@@ -60,6 +60,6 @@ public class WorkerTokenFilter extends OncePerRequestFilter {
         byte[] expected = expectedWorkerToken.getBytes(StandardCharsets.UTF_8);
         byte[] provided = providedToken.getBytes(StandardCharsets.UTF_8);
 
-        return MessageDigest.isEqual(expected, provided);
+        return MessageDigest.isEqual(expected, provided);// MessageDigest για Time attack
     }
 }

@@ -12,12 +12,13 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
-
+//το JPA οριζει την βάση δεδομένων τι atributes θα έχει για το job και τι primary key χρειάζεται.
+// Ενώ το Hibernate πρακτικα ειναι η διαδικάσια που γεμίζουμε τον πίνακα απο τον κώδικα java
 @Entity
 @Table(name = "jobs")
 public class Job {
 
-    @Id
+    @Id//δηλώνει ότι είναι το primary key του πίνακα
     @GeneratedValue(strategy= GenerationType.UUID)
     private String id;
 
@@ -60,7 +61,7 @@ public class Job {
     private LocalDateTime startedAt;
     private LocalDateTime updatedAt;
 
-    @PrePersist
+    @PrePersist//Εκτέλεσε αυτή τη μέθοδο ακριβώς πριν εισαχθεί για πρώτη φορά το Job στη βάση.
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();

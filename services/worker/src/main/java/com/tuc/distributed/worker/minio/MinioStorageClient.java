@@ -7,14 +7,14 @@ import org.springframework.stereotype.Component;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
+import java.nio.charset.StandardCharsets;//String <-> bytes
 import java.util.ArrayList;
 import java.util.List;
 
 @Component
 public class MinioStorageClient implements StorageClient {
 
-    private final MinioClient minioClient;
+    private final MinioClient minioClient;//εργαλείο επικοινωνίας με τον MinIO server
 
     public MinioStorageClient(MinioClient minioClient) {
         this.minioClient = minioClient;
@@ -26,8 +26,8 @@ public class MinioStorageClient implements StorageClient {
             return new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
         } catch (Exception e) {
             throw new IllegalStateException("Failed to read object %s/%s".formatted(bucket, objectKey), e);
-        }
-    }
+        }//Η μέθοδος διαβάζει ένα object από το MinIO και το επιστρέφει ως String.
+    }//Παράδειγμα εισόδου:readText("mapreduce-input", "splits/job-1/split_0.txt");
 
     @Override
     public void writeText(String bucket, String objectKey, String content) {
@@ -35,10 +35,10 @@ public class MinioStorageClient implements StorageClient {
         try (ByteArrayInputStream inputStream = new ByteArrayInputStream(bytes)) {
             minioClient.putObject(
                     PutObjectArgs.builder()
-                            .bucket(bucket)
-                            .object(objectKey)
-                            .stream(inputStream, bytes.length, -1)
-                            .contentType("text/plain")
+                            .bucket(bucket)//σε ποιο bucket θα αποθηκευτεί
+                            .object(objectKey)//με ποιο όνομα path
+                            .stream(inputStream, bytes.length, -1) //ποια δεδομένα θα γραφτούν και τι μέγεθος έχουν
+                            .contentType("text/plain")//ότι το object είναι text αρχείο
                             .build()
             );
         } catch (Exception e) {
@@ -63,7 +63,7 @@ public class MinioStorageClient implements StorageClient {
                             .bucket(bucket)
                             .object(objectKey)
                             .build()
-            );
+            );//MinIO object -> bytes που διαβάζονται μέσω stream
         } catch (Exception e) {
             throw new IllegalStateException("Failed to open object %s/%s".formatted(bucket, objectKey), e);
         }

@@ -105,7 +105,7 @@ public class WorkerPollingService {
         }
     }
 
-    private void executeTask(ClaimTaskResponse claimedTask) {
+    private void executeTask(ClaimTaskResponse claimedTask) {//μετατρέπω το ClaimTaksResponse που έλαβα απο το manager σε TaskRequest μέσα στον worker
         TaskRequest request = new TaskRequest(
                 claimedTask.getTaskId(),
                 claimedTask.getJobId(),

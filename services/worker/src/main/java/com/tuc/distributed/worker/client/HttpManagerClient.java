@@ -25,28 +25,28 @@ public class HttpManagerClient implements ManagerClient {
             return;
         }
 
-        int maxAttempts = 3;
+        int maxAttempts = 3;//Ο worker θα προσπαθήσει να ενημερώσει τον manager μέχρι 3 φορές.
         long backoffMillis = 1000;
 
         for (int attempt = 1; attempt <= maxAttempts; attempt++) {
             try {
-                restClient.post()
-                        .uri(callbackUrl)
-                        .header("X-Worker-Token", workerAuthToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .body(payload)
+                restClient.post()//http request προς manager
+                        .uri(callbackUrl)//ορίζει την διεύθυνση του manager
+                        .header("X-Worker-Token", workerAuthToken)//Ο manager θα το ελέγξει πρωτού δεχτεί το callback
+                        .contentType(MediaType.APPLICATION_JSON)// τα δεδομένα που γίνοται post ειναι json
+                        .body(payload)// TaskCompletionPayload
                         .retrieve()
                         .toBodilessEntity();
 
-                log.info(
+                log.info(//Αν το Callback Πετύχει
                         "Reported task {} to manager callback {} on attempt {}",
                         payload.taskId(),
                         callbackUrl,
                         attempt
-                );
+                );//Στον manager, το callback φτάνει στον controller και μετά το task αλλάζει κατάσταση: ASSIGNED->COMPLETED
                 return;
-            } catch (Exception e) {
-                if (attempt == maxAttempts) {
+            } catch (Exception e) {//Αν το Callback αποτύχει
+                if (attempt == maxAttempts) {//αν ήταν η 3η προσπάθεια
                     log.error(
                             "Failed to notify manager for task {} after {} attempts",
                             payload.taskId(),
@@ -56,7 +56,7 @@ public class HttpManagerClient implements ManagerClient {
                     return;
                 }
 
-                log.warn(
+                log.warn(//αναμονή πριν την επόμενξ προσπάθεια
                         "Failed to notify manager for task {} on attempt {}. Retrying in {} ms",
                         payload.taskId(),
                         attempt,
@@ -64,9 +64,10 @@ public class HttpManagerClient implements ManagerClient {
                 );
 
                 try {
-                    Thread.sleep(backoffMillis);
+                    Thread.sleep(backoffMillis);//1η αποτυχία -> περιμένει 1 δευτερόλεπτο
+                    //2η αποτυχία -> περιμένει 2 δευτερόλεπτα 3η αποτυχία -> σταματά
                 } catch (InterruptedException interruptedException) {
-                    Thread.currentThread().interrupt();
+                    Thread.currentThread().interrupt();//επαναφέρει την ένδειξη ότι το thread διακόπηκε
                     log.error(
                             "Interrupted while retrying manager callback for task {}",
                             payload.taskId(),
